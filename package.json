@@ -1,0 +1,57 @@
+{
+  "name": "tempo-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for managing Tempo worklogs in Jira",
+  "main": "build/index.js",
+  "type": "module",
+  "bin": {
+    "tempo-mcp-server": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "start": "node build/index.js",
+    "dev": "tsx watch src/index.ts",
+    "inspect": "npx @modelcontextprotocol/inspector tsx src/index.ts",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "mcp",
+    "tempo",
+    "jira",
+    "worklogs",
+    "time-tracking",
+    "claude",
+    "cursor",
+    "windsurf",
+    "cline",
+    "ai"
+  ],
+  "author": "Ivelin Ivanov <ivelinivanov1999@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivelin-web/tempo-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ivelin-web/tempo-mcp-server/issues"
+  },
+  "homepage": "https://github.com/ivelin-web/tempo-mcp-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "axios": "^1.6.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

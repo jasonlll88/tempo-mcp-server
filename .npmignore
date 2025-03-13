@@ -1,0 +1,47 @@
+# Source files
+src/
+
+# TypeScript config
+tsconfig.json
+
+# Development files
+.env
+.env.example
+.editorconfig
+.eslintrc
+.prettierrc
+
+# Git files
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Tests
+test/
+tests/
+__tests__/
+coverage/
+
+# Temp files
+temp/
+tmp/
+.tmp/
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Wrapper script (for local testing only)
+tempo-mcp-wrapper.sh
+
+# Node modules
+node_modules/ 
