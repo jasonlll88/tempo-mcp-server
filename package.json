@@ -1,5 +1,5 @@
 {
-  "name": "tempo-mcp-server",
+  "name": "@ivelin-web/tempo-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for managing Tempo worklogs in Jira",
   "main": "build/index.js",
@@ -53,5 +53,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -16,10 +16,6 @@ import {
   editWorklogSchema,
   deleteWorklogSchema
 } from './types.js';
-import { parseArguments } from './utils.js';
-
-// Parse command line arguments before loading config
-parseArguments(process.argv.slice(2));
 
 // Create MCP server instance
 const server = new McpServer({

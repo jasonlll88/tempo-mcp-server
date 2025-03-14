@@ -103,3 +103,9 @@ export interface WorklogError {
   date: string;
   error: string;
 } 
+
+export interface Config {
+  tempoApi: { baseUrl: string; token: string };
+  jiraApi: { baseUrl: string; token: string; email: string };
+  server: { name: string; version: string };
+}

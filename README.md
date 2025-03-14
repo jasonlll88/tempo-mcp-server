@@ -2,7 +2,7 @@
 
 A Model Context Protocol (MCP) server for managing Tempo worklogs in Jira. This server provides tools for tracking time and managing worklogs through Tempo's API, making it accessible through Claude, Cursor and other MCP-compatible clients.
 
-[![npm version](https://img.shields.io/npm/v/tempo-mcp-server.svg)](https://www.npmjs.com/package/tempo-mcp-server)
+[![npm version](https://img.shields.io/npm/v/@ivelin-web/tempo-mcp-server.svg)](https://www.npmjs.com/package/@ivelin-web/tempo-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -31,10 +31,6 @@ There are two main ways to use this MCP server:
 
 The easiest way to use this server is via npx without installation:
 
-```bash
-npx tempo-mcp-server --tempo-token=your_tempo_token --jira-token=your_jira_token --jira-email=your@email.com --jira-base-url=https://your-org.atlassian.net
-```
-
 ### Connecting to Claude Desktop (NPX Method)
 
 1. Open your MCP client configuration file:
@@ -49,12 +45,15 @@ npx tempo-mcp-server --tempo-token=your_tempo_token --jira-token=your_jira_token
     "Jira_Tempo": {
       "command": "npx",
       "args": [
-        "tempo-mcp-server",
-        "--tempo-token=your_tempo_token",
-        "--jira-token=your_jira_token",
-        "--jira-email=your@email.com",
-        "--jira-base-url=https://your-org.atlassian.net"
-      ]
+        "-y",
+        "@ivelin-web/tempo-mcp-server"
+      ],
+      "env": {
+        "TEMPO_API_TOKEN": "your_tempo_api_token_here",
+        "JIRA_API_TOKEN": "your_jira_api_token_here",
+        "JIRA_EMAIL": "your_email@example.com",
+        "JIRA_BASE_URL": "https://your-org.atlassian.net"
+      }
     }
   }
 }
@@ -78,27 +77,19 @@ npm install
 npm run build
 ```
 
-### Local Configuration
+### Running Locally
 
-#### Using the Wrapper Script (Recommended for local usage)
+There are two ways to run the server locally:
 
-The easiest way to run the server locally is to use the included wrapper script:
-
-1. Edit the `tempo-mcp-wrapper.sh` file and update your API tokens and credentials:
+#### 1. Using the MCP Inspector (for development and debugging)
 
 ```bash
-# Update these lines with your actual credentials
-export TEMPO_API_TOKEN="your_tempo_api_token_here"
-export JIRA_API_TOKEN="your_jira_api_token_here"
-export JIRA_EMAIL="your_email@example.com"
-export JIRA_BASE_URL="https://your-org.atlassian.net"
+npm run inspect
 ```
 
-2. Make the script executable:
+#### 2. Using Node directly
 
-```bash
-chmod +x tempo-mcp-wrapper.sh
-```
+You can run the server directly with Node by pointing to the built JavaScript file:
 
 ### Connecting to Claude Desktop (Local Method)
 
@@ -109,16 +100,20 @@ chmod +x tempo-mcp-wrapper.sh
 {
   "mcpServers": {
     "Jira_Tempo": {
-      "command": "/bin/bash",
+      "command": "node",
       "args": [
-        "/ABSOLUTE/PATH/TO/tempo-mcp-wrapper.sh"
-      ]
+        "/ABSOLUTE/PATH/TO/tempo-mcp-server/build/index.js"
+      ],
+      "env": {
+        "TEMPO_API_TOKEN": "your_tempo_api_token_here",
+        "JIRA_API_TOKEN": "your_jira_api_token_here",
+        "JIRA_EMAIL": "your_email@example.com",
+        "JIRA_BASE_URL": "https://your-org.atlassian.net"
+      }
     }
   }
 }
 ```
-
-Replace `/ABSOLUTE/PATH/TO/tempo-mcp-wrapper.sh` with the actual path to your wrapper script.
 
 3. Restart your Claude Desktop client
 
@@ -132,21 +127,18 @@ Replace `/ABSOLUTE/PATH/TO/tempo-mcp-wrapper.sh` with the actual path to your wr
    - Go to [Atlassian API tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
    - Create a new API token for your account
 
-## Command Line Options
+## Environment Variables
 
-When using the server directly (not through the wrapper script), you can provide configuration via command line:
+The server requires the following environment variables:
 
-```bash
-npx tempo-mcp-server --tempo-token=your_tempo_token --jira-token=your_jira_token --jira-email=your@email.com --jira-base-url=https://your-org.atlassian.net
+```
+TEMPO_API_TOKEN     # Your Tempo API token
+JIRA_API_TOKEN      # Your Jira API token
+JIRA_EMAIL          # Your Jira account email
+JIRA_BASE_URL       # Your Jira instance URL (e.g., https://your-org.atlassian.net)
 ```
 
-Short form options are also available:
-
-```bash
-npx tempo-mcp-server -t your_tempo_token -j your_jira_token -e your@email.com -u https://your-org.atlassian.net
-```
-
-Run with `--help` or `-h` to see all available options.
+You can set these in your environment or provide them in the MCP client configuration.
 
 ## Available Tools
 
@@ -214,30 +206,13 @@ tempo-mcp-server/
 ├── src/                  # Source code
 │   ├── config.ts         # Configuration management
 │   ├── index.ts          # MCP server implementation
-│   ├── jira.ts          # Jira API integration
-│   ├── tools.ts         # Tool implementations
-│   ├── types.ts         # TypeScript types and schemas
-│   └── utils.ts         # Utility functions
-├── build/               # Compiled JavaScript (generated)
-├── tempo-mcp-wrapper.sh # Startup wrapper script
-├── tsconfig.json        # TypeScript configuration
-└── package.json         # Project metadata and scripts
-```
-
-## Development
-
-```bash
-# Run in development mode with auto-reload
-npm run dev
-
-# Build TypeScript files
-npm run build
-
-# Run the compiled version
-npm start
-
-# Run the MCP Inspector for debugging
-npm run inspect
+│   ├── jira.ts           # Jira API integration
+│   ├── tools.ts          # Tool implementations
+│   ├── types.ts          # TypeScript types and schemas
+│   └── utils.ts          # Utility functions
+├── build/                # Compiled JavaScript (generated)
+├── tsconfig.json         # TypeScript configuration
+└── package.json          # Project metadata and scripts
 ```
 
 ## Troubleshooting
