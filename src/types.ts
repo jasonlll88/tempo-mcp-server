@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 // Common validation schemas
 export const dateSchema = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format');
+export const timeSchema = () => z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be in HH:MM format');
 export const issueKeySchema = () => z.string().min(1, 'Issue key cannot be empty');
 export const issueIdSchema = () => z.union([
   z.string().min(1, 'Issue ID cannot be empty'),
@@ -24,6 +25,7 @@ export const worklogEntrySchema = z.object({
   timeSpentHours: z.number().positive('Time spent must be positive'),
   date: dateSchema(),
   description: z.string().optional(),
+  startTime: timeSchema().optional(),
 });
 
 export type WorklogEntry = z.infer<typeof worklogEntrySchema>;
@@ -39,6 +41,7 @@ export const createWorklogSchema = z.object({
   timeSpentHours: z.number().positive('Time spent must be positive'),
   date: dateSchema(),
   description: z.string().optional().default(''),
+  startTime: timeSchema().optional(),
 });
 
 export const bulkCreateWorklogsSchema = z.object({
@@ -50,6 +53,7 @@ export const editWorklogSchema = z.object({
   timeSpentHours: z.number().positive('Time spent must be positive'),
   description: z.string().optional().nullable(),
   date: dateSchema().optional().nullable(),
+  startTime: timeSchema().optional(),
 });
 
 export const deleteWorklogSchema = z.object({
@@ -95,6 +99,8 @@ export interface WorklogResult {
   date: string;
   worklogId: string | null;
   success: boolean;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface WorklogError {

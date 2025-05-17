@@ -8,7 +8,7 @@ import {
 } from './types.js';
 import config from './config.js';
 import { getCurrentUserAccountId, getIssueId } from './jira.js';
-import { formatError, getIssueKeysMap } from './utils.js';
+import { formatError, getIssueKeysMap, calculateEndTime } from './utils.js';
 
 // API client for Tempo
 const api = axios.create({
@@ -82,7 +82,8 @@ export async function createWorklog(
   issueKey: string, 
   timeSpentHours: number, 
   date: string, 
-  description: string = ''
+  description: string = '',
+  startTime: string | undefined = undefined
 ): Promise<ToolResponse> {
   try {
     // Get issue ID and account ID
@@ -95,16 +96,24 @@ export async function createWorklog(
       timeSpentSeconds: Math.round(timeSpentHours * 3600),
       startDate: date,
       authorAccountId: accountId,
-      description
+      description,
+      ...(startTime && { startTime }),
     };
     
     // Submit the worklog
     const response = await api.post('/worklogs', payload);
     
+    // Calculate end time if start time is provided
+    let timeInfo = '';
+    if (startTime) {
+      const endTime = calculateEndTime(startTime, timeSpentHours);
+      timeInfo = ` starting at ${startTime} and ending at ${endTime}`;
+    }
+    
     return {
       content: [{
         type: "text",
-        text: `Worklog with ID ${response.data.tempoWorklogId} created successfully for ${issueKey}. Time logged: ${timeSpentHours} hours on ${date}`
+        text: `Worklog with ID ${response.data.tempoWorklogId} created successfully for ${issueKey}. Time logged: ${timeSpentHours} hours on ${date}${timeInfo}`
       }]
     };
   } catch (error) {
@@ -148,6 +157,7 @@ export async function bulkCreateWorklogs(
           startDate: entry.date,
           authorAccountId,
           description: entry.description || '',
+          ...(entry.startTime && { startTime: entry.startTime }),
         }));
         
         // Submit bulk request
@@ -157,12 +167,21 @@ export async function bulkCreateWorklogs(
         // Record results
         entries.forEach((entry, i) => {
           const created = createdWorklogs[i] || null;
+          
+          // Calculate end time if startTime is provided
+          let endTime = undefined;
+          if (entry.startTime && created) {
+            endTime = calculateEndTime(entry.startTime, entry.timeSpentHours);
+          }
+          
           results.push({
             issueKey,
             timeSpentHours: entry.timeSpentHours,
             date: entry.date,
             worklogId: created?.tempoWorklogId || null,
-            success: !!created
+            success: !!created,
+            startTime: entry.startTime,
+            endTime
           });
         });
       } catch (error) {
@@ -189,9 +208,14 @@ export async function bulkCreateWorklogs(
       content.push({ type: "text", text: `Successfully created ${successCount} worklogs:` });
       
       results.filter(r => r.success).forEach(result => {
+        let timeInfo = '';
+        if (result.startTime) {
+          timeInfo = ` starting at ${result.startTime}${result.endTime ? ` and ending at ${result.endTime}` : ''}`;
+        }
+        
         content.push({
           type: "text",
-          text: `- Issue ${result.issueKey}: ${result.timeSpentHours} hours on ${result.date}`
+          text: `- Issue ${result.issueKey}: ${result.timeSpentHours} hours on ${result.date}${timeInfo}`
         });
       });
     }
@@ -232,7 +256,8 @@ export async function editWorklog(
   worklogId: string, 
   timeSpentHours: number, 
   description: string | null = null, 
-  date: string | null = null
+  date: string | null = null,
+  startTime: string | undefined = undefined
 ): Promise<ToolResponse> {
   try {
     // Get current worklog
@@ -246,16 +271,26 @@ export async function editWorklog(
       timeSpentSeconds: Math.round(timeSpentHours * 3600),
       billableSeconds: Math.round(timeSpentHours * 3600),
       ...(description !== null && { description }),
+      ...(startTime && { startTime }),
     };
 
     // Update the worklog
     await api.put(`/worklogs/${worklogId}`, updatePayload);
     
+    // Information about the update
+    let updateInfo = `Worklog updated successfully`;
+    
+    // Calculate and show time info if we have a start time
+    if (startTime) {
+      const endTime = calculateEndTime(startTime, timeSpentHours);
+      updateInfo += `. Time logged: ${timeSpentHours} hours starting at ${startTime} and ending at ${endTime}`;
+    }
+    
     // Format response
     return {
       content: [{
         type: "text",
-        text: `Worklog updated successfully`
+        text: updateInfo
       }],
     };
   } catch (error) {
