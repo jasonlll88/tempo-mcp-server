@@ -164,6 +164,7 @@ Parameters:
 - timeSpentHours: Number (positive)
 - date: String (YYYY-MM-DD)
 - description: String (optional)
+- startTime: String (HH:MM format, optional)
 ```
 
 ### bulkCreateWorklogs
@@ -177,6 +178,7 @@ Parameters:
     timeSpentHours: Number
     date: String (YYYY-MM-DD)
     description: String (optional)
+    startTime: String (HH:MM format, optional)
   }
 ```
 
@@ -190,6 +192,7 @@ Parameters:
 - timeSpentHours: Number (positive)
 - description: String (optional)
 - date: String (YYYY-MM-DD, optional)
+- startTime: String (HH:MM format, optional)
 ```
 
 ### deleteWorklog
