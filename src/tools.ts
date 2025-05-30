@@ -29,11 +29,43 @@ export async function retrieveWorklogs(
   try {
     const accountId = await getCurrentUserAccountId();
     
-    const response = await api.get(`/worklogs/user/${accountId}`, {
-      params: { from: startDate, to: endDate }
-    });
+    // Fetch all pages of worklogs
+    let allWorklogs: any[] = [];
+    let nextUrl: string | null = null;
+    let isFirstRequest = true;
+    let pageCount = 0;
+    const MAX_PAGES = 500; // Safety limit to prevent infinite loops (25,000 worklogs max)
     
-    const worklogs = response.data.results || [];
+    do {
+      if (pageCount >= MAX_PAGES) {
+        console.warn(`Reached maximum page limit (${MAX_PAGES}) while fetching worklogs`);
+        break;
+      }
+      
+      let response;
+      if (isFirstRequest) {
+        response = await api.get(`/worklogs/user/${accountId}`, {
+          params: { from: startDate, to: endDate }
+        });
+        isFirstRequest = false;
+      } else {
+        response = await axios.get(nextUrl!, {
+          headers: {
+            'Authorization': `Bearer ${config.tempoApi.token}`,
+            'Content-Type': 'application/json',
+          }
+        });
+      }
+      
+      const pageWorklogs = response.data.results || [];
+      allWorklogs = allWorklogs.concat(pageWorklogs);
+      
+      // Check if there's a next page
+      nextUrl = response.data.metadata?.next || null;
+      pageCount++;
+    } while (nextUrl);
+    
+    const worklogs = allWorklogs;
     
     // If no worklogs found, return empty content
     if (worklogs.length === 0) {
@@ -54,7 +86,7 @@ export async function retrieveWorklogs(
       const date = worklog.startDate || 'Unknown';
       
       return {
-        type: "text",
+        type: "text" as const,
         text: `IssueKey: ${issueKey} | IssueId: ${issueId} | Date: ${date} | Hours: ${timeSpentHours} | Description: ${description}`
       };
     });
@@ -63,6 +95,7 @@ export async function retrieveWorklogs(
       content: formattedContent,
       metadata: {
         totalCount: worklogs.length,
+        pagesProcessed: pageCount,
         startDate,
         endDate
       }
