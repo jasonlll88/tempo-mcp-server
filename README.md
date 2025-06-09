@@ -142,9 +142,23 @@ TEMPO_API_TOKEN     # Your Tempo API token
 JIRA_API_TOKEN      # Your Jira API token
 JIRA_EMAIL          # Your Jira account email
 JIRA_BASE_URL       # Your Jira instance URL (e.g., https://your-org.atlassian.net)
+JIRA_TEMPO_ACCOUNT_CUSTOM_FIELD_ID     # Optional: Custom field ID for Tempo accounts
+
 ```
 
 You can set these in your environment or provide them in the MCP client configuration.
+
+## Tempo Account Configuration
+
+If your Tempo instance requires worklogs to be linked to accounts, set the custom field ID that contains the account information:
+
+```bash
+JIRA_TEMPO_ACCOUNT_CUSTOM_FIELD_ID=10234
+```
+
+To find your custom field ID:
+1. Go to Jira Settings → Issues → Custom Fields
+2. Find your Tempo account field and note the ID from the URL or field configuration
 
 ## Available Tools
 
