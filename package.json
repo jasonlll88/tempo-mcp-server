@@ -69,7 +69,7 @@
     "access": "public"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
+    "*.{js,ts}": "eslint --cache --fix --quiet",
     "*.--write": "prettier --write"
   }
 }
