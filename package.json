@@ -12,7 +12,7 @@
     "start": "node build/index.js",
     "dev": "tsx watch src/index.ts",
     "inspect": "npx @modelcontextprotocol/inspector tsx src/index.ts",
-    "prepare": "npm run build && husky install",
+    "prepare": "npm run build && husky",
     "lint": "eslint",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
