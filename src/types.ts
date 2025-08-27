@@ -1,20 +1,21 @@
 import { z } from 'zod';
 
 // Common validation schemas
-export const dateSchema = () =>
-  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format');
-export const timeSchema = () =>
-  z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Time must be in HH:MM format');
-export const issueKeySchema = () =>
-  z.string().min(1, 'Issue key cannot be empty');
-export const issueIdSchema = () =>
-  z.union([
-    z.string().min(1, 'Issue ID cannot be empty'),
-    z.number().int().positive('Issue ID must be a positive integer'),
-  ]);
-export const idOrKeySchema = () => z.union([issueKeySchema(), issueIdSchema()]);
+export const dateSchema = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format');
+export const timeSchema = () => z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/, 'Time must be in HH:MM format and in 15-minute increments');
+export const timeSpentHoursSchema = () => z.number().positive('Time spent must be positive').refine(
+  (val) => (val * 4) % 1 === 0,
+  'Time spent must be in quarter-hour increments (0.25, 0.5, 0.75, 1, 1.25, etc.)'
+);
+export const issueKeySchema = () => z.string().min(1, 'Issue key cannot be empty');
+export const issueIdSchema = () => z.union([
+  z.string().min(1, 'Issue ID cannot be empty'),
+  z.number().int().positive('Issue ID must be a positive integer')
+]);
+export const idOrKeySchema = () => z.union([
+  issueKeySchema(),
+  issueIdSchema()
+]);
 
 // Environment validation
 export const envSchema = z.object({
@@ -30,7 +31,7 @@ export type Env = z.infer<typeof envSchema>;
 // Worklog entry schema
 export const worklogEntrySchema = z.object({
   issueKey: issueKeySchema(),
-  timeSpentHours: z.number().positive('Time spent must be positive'),
+  timeSpentHours: timeSpentHoursSchema(),
   date: dateSchema(),
   description: z.string().optional(),
   startTime: timeSchema().optional(),
@@ -46,21 +47,19 @@ export const retrieveWorklogsSchema = z.object({
 
 export const createWorklogSchema = z.object({
   issueKey: issueKeySchema(),
-  timeSpentHours: z.number().positive('Time spent must be positive'),
+  timeSpentHours: timeSpentHoursSchema(),
   date: dateSchema(),
   description: z.string().optional().default(''),
   startTime: timeSchema().optional(),
 });
 
 export const bulkCreateWorklogsSchema = z.object({
-  worklogEntries: z
-    .array(worklogEntrySchema)
-    .min(1, 'At least one worklog entry is required'),
+  worklogEntries: z.array(worklogEntrySchema).min(1, 'At least one worklog entry is required'),
 });
 
 export const editWorklogSchema = z.object({
   worklogId: z.string().min(1, 'Worklog ID is required'),
-  timeSpentHours: z.number().positive('Time spent must be positive'),
+  timeSpentHours: timeSpentHoursSchema(),
   description: z.string().optional().nullable(),
   date: dateSchema().optional().nullable(),
   startTime: timeSchema().optional(),
@@ -95,7 +94,7 @@ export interface TempoWorklog {
 // MCP response interfaces
 export interface ToolResponse {
   content: Array<{
-    type: 'text';
+    type: "text";
     text: string;
   }>;
   metadata?: Record<string, any>;
@@ -119,7 +118,7 @@ export interface WorklogError {
   timeSpentHours: number;
   date: string;
   error: string;
-}
+} 
 
 export interface Config {
   tempoApi: { baseUrl: string; token: string };
