@@ -1,4 +1,6 @@
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 import {
   ToolResponse,
   TempoWorklog,
@@ -18,6 +20,47 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// /**
+//  * Write log data to a file, used only for debugging purposes
+//  */
+// function writeToLogFile(data: any, filename: string = 'tempo-api.log') {
+//   try {
+//     const logDir = '/Users/jheison.rodriguez/Desktop/tempo-mcp-server/tempo-mcp-server/logs';
+    
+//     if (!fs.existsSync(logDir)) {
+//       fs.mkdirSync(logDir, { recursive: true });
+//     }
+    
+//     const logPath = path.join(logDir, filename);
+//     const timestamp = new Date().toISOString();
+    
+//     // Extract only the essential information
+//     const logEntry = `[${timestamp}] ${data}}\n\n`;
+    
+//     fs.appendFileSync(logPath, logEntry);
+//   } catch (error) {
+//     console.error('Failed to write to log file:', error);
+//   }
+// }
+
+// // Custom replacer to handle circular references, used only for debugging purposes
+// function safeStringify(obj: any): string {
+//   const seen = new WeakSet();
+//   return JSON.stringify(obj, (key, value) => {
+//     if (typeof value === 'object' && value !== null) {
+//       if (seen.has(value)) {
+//         return '[Circular Reference]';
+//       }
+//       seen.add(value);
+//     }
+//     return value;
+//   });
+// }
+
+// // Examples of logs for debugging purposes
+// writeToLogFile(JSON.stringify({ type: 'flag', data: "JLRM--DEBUG response.data" }), 'tempo-worklogs.log');
+// writeToLogFile(safeStringify({ type: 'api_response', data: response.data }), 'tempo-worklogs.log');
 
 /**
  * Retrieve worklogs for the configured user within a date range
@@ -56,7 +99,7 @@ export async function retrieveWorklogs(
           }
         });
       }
-      
+
       const pageWorklogs = response.data.results || [];
       allWorklogs = allWorklogs.concat(pageWorklogs);
       
@@ -81,6 +124,7 @@ export async function retrieveWorklogs(
     const formattedContent = worklogs.map((worklog: any) => {
       const issueId = worklog.issue?.id || 'Unknown';
       const issueKey = issueIdToKeyMap[issueId] || 'Unknown';
+      const tempoWorklogId = worklog.tempoWorklogId || 'Unknown';
       const description = worklog.description || 'No description';
       const timeSpentHours = (worklog.timeSpentSeconds / 3600).toFixed(2);
       const date = worklog.startDate || 'Unknown';
@@ -88,10 +132,10 @@ export async function retrieveWorklogs(
       
       return {
         type: "text" as const,
-        text: `IssueKey: ${issueKey} | IssueId: ${issueId} | Date: ${date}${startTime ? ` | StartTime: ${startTime}` : ''} | Hours: ${timeSpentHours} | Description: ${description}`
+        text: `IssueKey: ${issueKey} | IssueId: ${issueId} | TempoWorklogId: ${tempoWorklogId} | Date: ${date}${startTime ? ` | StartTime: ${startTime}` : ''} | Hours: ${timeSpentHours} | Description: ${description}`
       };
     });
-    
+
     return {
       content: formattedContent,
       metadata: {
@@ -303,28 +347,29 @@ export async function bulkCreateWorklogs(
 export async function editWorklog(
   worklogId: string, 
   timeSpentHours: number, 
-  description: string | null = null, 
-  date: string | null = null,
+  description: string | null,
+  date: string | null,
   startTime: string | undefined = undefined
 ): Promise<ToolResponse> {
   try {
     // Get current worklog
     const response = await api.get<TempoWorklog>(`/worklogs/${worklogId}`);
     const worklog = response.data;
-    
+
     // Prepare update payload
     const updatePayload = {
       authorAccountId: worklog.author.accountId,
       startDate: date || worklog.startDate,
-      timeSpentSeconds: Math.round(timeSpentHours * 3600),
-      billableSeconds: Math.round(timeSpentHours * 3600),
-      ...(description !== null && { description }),
-      ...(startTime && { startTime: `${startTime}:00` }),
+      timeSpentSeconds: Math.round(timeSpentHours * 3600) || worklog.timeSpentSeconds,
+      billableSeconds: Math.round(timeSpentHours * 3600) || worklog.billableSeconds,
+      description: description !== null ? description : worklog.description,
+      startTime: startTime ? `${startTime}:00` : worklog.startTime,
+      ...(worklog.attributes && { attributes: worklog.attributes.values })
     };
 
     // Update the worklog
     await api.put(`/worklogs/${worklogId}`, updatePayload);
-    
+  
     // Information about the update
     let updateInfo = `Worklog updated successfully`;
     
