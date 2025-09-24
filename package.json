@@ -1,6 +1,6 @@
 {
   "name": "@jasonlll88/tempo-mcp-server",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "MCP server for managing Tempo worklogs in Jira, this is a fork of the original repository https://github.com/ivelin-web/tempo-mcp-server",
   "keywords": [
     "mcp",
