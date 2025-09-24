@@ -121,7 +121,6 @@ server.tool(
         timeSpentHours,
         description || null,
         date || null,
-        startTime || undefined,
       );
       return {
         content: result.content,
